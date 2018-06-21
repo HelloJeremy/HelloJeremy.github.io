@@ -99,7 +99,7 @@ service-worker: true
 # Friends
 friends: [
     {
-        title: "lynhao",
+        title: "Blog·lynhao",
         href: "http://lynhao.cn/"
     },{
         title: "V2EX",
