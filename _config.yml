@@ -19,7 +19,7 @@ sidebar-avatar: /img/about-Dream-gentle.png      # use absolute URL, seeing it's
 # SNS settings
 RSS: false
 # weibo_username:     qiubaiying
-zhihu_username:     #
+zhihu_username:     HelloJeremy
 github_username:   hellojeremy
 facebook_username: #
 jianshu_username:  #
@@ -100,7 +100,7 @@ service-worker: true
 friends: [
     {
         title: "lynhao",
-        href: "www.lynhao.cn"
+        href: "http://lynhao.cn/"
     },{
         title: "V2EX",
         href: "https://www.v2ex.com/"
