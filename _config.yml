@@ -66,8 +66,9 @@ gitalk:
   clientSecret: 7cf6a6b5dd9ab87fc042d9db194fbe257ab3ad97    #生成的clientSecret
   repo: HelloJeremy.github.io    #仓库名称
   owner: HelloJeremy    #github用户名
-  admin: HelloJeremy
+  admin: [HelloJeremy]
   distractionFreeMode: true #是否启用类似FB的阴影遮罩
+  id: 'window.location.pathname'
 
 
 # 统计
