@@ -99,6 +99,10 @@ service-worker: true
 # Friends
 friends: [
     {
+        title: "Blog·BY",
+        href: "http://qiubaiying.top/"
+    },
+    {
         title: "Blog·lynhao",
         href: "http://lynhao.cn/"
     },{
@@ -107,8 +111,5 @@ friends: [
     },{
         title: "segmentfault",
         href: "https://segmentfault.com/"
-    },{
-        title: "掘金",
-        href: "https://juejin.im/"
     }
 ]
