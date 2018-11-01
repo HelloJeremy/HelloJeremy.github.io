@@ -12,9 +12,6 @@ tags:
     - YAML
 ---
 
-
-### Spring、SpringBoot工程 yaml配置文件映射到pojo对象
-
 #### YAML简介
 
 > **YAML**是一个可读性高，用来表达资料序列的编程语言。yml 文件在写的时候层次感强，而且少写了代码。所以现在很多人都使用YAML配置文件。
