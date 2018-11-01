@@ -4,7 +4,7 @@ title:      SpringBoot工程 yaml配置文件映射到pojo对象
 subtitle:   SpringBoot工程项目配置文件的那些事
 date:       2018-11-1
 author:     Dream
-header-img: img/post-bg-ios9-web.jpg
+header-img: post-bg-springBoot-yaml.jpg.jpg
 catalog: true
 tags:
     - Java
