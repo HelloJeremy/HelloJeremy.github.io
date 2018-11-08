@@ -22,7 +22,12 @@ header-img: "img/post-bg-rwd.jpg"
 
     <p>工作、学习之余，我还是一个篮球爱好者，同时也非常喜欢健身。</p>
 
-    <p>这是我的利用 <a href="https://pages.github.com/">GitHub Pages</a> 与 <a href="http://jekyll.com.cn/">Jekyll</a> 搭建的 个人博客。我的GitHub主页<a href="https://github.com/HelloJeremy">👉GitHub·HelloJeremy</a> 与个人简历<a href="https://jacheng.top/resume/">👉resume</a>。欢迎大家关注，联系我~</p>
+    <p>这是我的利用 <a href="https://pages.github.com/">GitHub Pages</a> 与 <a href="http://jekyll.com.cn/">Jekyll</a> 搭建的 个人博客。
+        我的GitHub主页<a href="https://github.com/HelloJeremy">👉GitHub·HelloJeremy</a>
+        {% if site.resume %}
+        与个人简历<a href="{{ site.resume }}">👉resume</a>。
+        {% endif %}
+        欢迎大家关注，联系我~</p>
 
     <p></p>
     
