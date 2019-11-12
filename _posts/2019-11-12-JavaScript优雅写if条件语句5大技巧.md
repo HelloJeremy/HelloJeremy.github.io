@@ -47,6 +47,7 @@
 - 打印animal的类型
 - 打印animal的名字
 - 打印animal的性别
+
 ```javascript
 const printAnimalDetails = animal => {
   let result; // declare a variable to store the final value
@@ -89,11 +90,9 @@ console.log(
   printAnimalDetails({ type: "dog", name: "Lucy", gender: "female" })
 ); // 'Lucy is a female dog'
 ```
-
 你感觉上面的代码写的如何？
 它可以正常运行，但是又臭又长，如果没有语法高亮，在排查if语句是否正确闭合，就可能花费很长时间。假如这代码有更复杂的逻辑，无法想象的一大坨 if..else语句！
 我们可以用三目运算符、&&重构以上代码。我们用多个return写更加优美的代码。
-
 ``` javascript
 const printAnimalDetails = ({type, name, gender } = {}) => {
   if(!type) return 'No animal type';
@@ -113,7 +112,6 @@ console.log(printAnimalDetails({ type: dog, gender: female })); // 'No animal na
 
 console.log(printAnimalDetails({ type: dog, name: 'Lucy', gender: 'female' })); // 'Lucy is a female dog'
 ```
-
 在上面的重构中，运用了解构和默认参数，当我们将undefined 作为实参时，仍然有一个空对象｛｝默认参数值可以被解构。
 在平时工作中，可以善用解构和默认参数。
 又比如：
