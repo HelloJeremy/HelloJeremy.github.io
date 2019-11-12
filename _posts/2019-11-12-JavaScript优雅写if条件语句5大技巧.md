@@ -47,7 +47,6 @@
 - 打印animal的类型
 - 打印animal的名字
 - 打印animal的性别
-
 ```javascript
 const printAnimalDetails = animal => {
   let result; // declare a variable to store the final value
