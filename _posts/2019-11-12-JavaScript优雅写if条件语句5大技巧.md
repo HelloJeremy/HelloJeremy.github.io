@@ -46,7 +46,7 @@
 - 没有animal，抛出错误
 - 打印animal的类型
 - 打印animal的名字
-- 打印animal的性别
+- 打印animal的性别就退出程序
 
 ```javascript
 const printAnimalDetails = animal => {
@@ -144,6 +144,7 @@ function printVegetablesWithQuantity(vegetable, quantity) {
 我们注意到：
 - 一个 if/else 语句过滤非法条件
 - 3层 if 语句嵌套(条件1,2&3)
+
 一个通用技巧：条件不满足时，就退出程序。
 ```javascript
 function printVegetablesWithQuantity(vegetable, quantity) {
