@@ -1,3 +1,17 @@
+---
+layout:     post
+title:      随便聊聊
+subtitle:   2017 情人节快乐~ 
+date:       2017-02-14
+author:     BY
+header-img: img/post-bg-2019.jpg
+catalog: true
+tags:
+    - js
+    - 技巧
+    - CleanCode
+---
+
 # JavaScript优雅写if条件语句5大技巧
 @(译文)[JavaScript]
 >该篇是 Tips to write better Conditionals in JavaScript 的译文，[原文链接](https://dev.to/hellomeghna/tips-to-write-better-conditionals-in-javascript-2189)。
