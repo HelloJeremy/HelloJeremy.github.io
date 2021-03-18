@@ -6,6 +6,7 @@ date:       2019-11-12
 author:     Dream
 header-img: img/post-bg-2019.jpg
 catalog: true
+hide:true
 tags:
     - js
     - 技巧
