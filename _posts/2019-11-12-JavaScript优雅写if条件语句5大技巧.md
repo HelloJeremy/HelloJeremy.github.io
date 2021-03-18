@@ -1,17 +1,4 @@
----
-layout:     post
-title:      JavaScript优雅写if条件语句5大技巧
-subtitle:   CleanCode-代码整洁之道 
-date:       2019-11-12
-author:     Dream
-header-img: img/post-bg-2019.jpg
-catalog: true
-hide:true
-tags:
-    - js
-    - 技巧
-    - CleanCode
----
+
 
 # JavaScript优雅写if条件语句5大技巧
 @(译文)[JavaScript]
