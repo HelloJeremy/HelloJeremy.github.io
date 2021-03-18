@@ -1,3 +1,17 @@
+---
+layout:     post
+title:      开闭原则最佳实践-Java反射、单例模式、策略模式和工厂模式混用消除if-else
+subtitle:   CleanCode-代码整洁之道
+date:       2020-06-06
+author:     Dream
+header-img: img/post-bg-universe.jpg
+catalog: true
+tags:
+- java
+- 设计模式
+- CleanCode
+---
+
 ## 开闭原则最佳实践-Java反射、单例模式、策略模式和工厂模式混用消除if-else
 > 开闭原则规定“软件中的对象（类，模块，函数等等）应该对于扩展是开放的，但是对于修改是封闭的”
 ### 背景
