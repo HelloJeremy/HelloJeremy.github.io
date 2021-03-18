@@ -1,0 +1,378 @@
+<!DOCTYPE html><html><head><title>开闭原则最佳实践-Java反射、单例模式、策略模式和工厂模式混用消除if-else</title><meta charset='utf-8'><link href='https://cdn.maxiang.io/res-min/themes/marxico.css' rel='stylesheet'><style></style></head><body><div id='preview-contents' class='note-content'>
+                        
+                    
+
+
+
+<h2 id="开闭原则最佳实践-java反射单例模式策略模式和工厂模式混用消除if-else">开闭原则最佳实践-Java反射、单例模式、策略模式和工厂模式混用消除if-else</h2>
+
+<blockquote>
+  <p>开闭原则规定“软件中的对象（类，模块，函数等等）应该对于扩展是开放的，但是对于修改是封闭的”</p>
+</blockquote>
+
+
+
+<h3 id="背景">背景</h3>
+
+<p>一款服务为用户推出优惠套餐，每款套餐又有二级套餐分类，比如：有一款套餐A，可选基础套餐A和高级套餐A。 需要根据二级套餐Id获取二级套餐名，和二级套餐所属的一级套餐。 <br>
+起初只推出了两款套餐，所以我老老实实的用if-else：</p>
+
+
+
+<pre class="prettyprint hljs-dark"><code class="language-java hljs"><div class="hljs-line"><span class="hljs-keyword">if</span>(packageId == basePackageAId){
+</div><div class="hljs-line">   getBasePackageAName;
+</div><div class="hljs-line">   getPackageAId;
+</div><div class="hljs-line">}<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(packageId == superPackageAId){
+</div><div class="hljs-line">   getSuperPackageAName;
+</div><div class="hljs-line">   getPackageAId;
+</div><div class="hljs-line">}<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(packageId == basePackageBId){
+</div><div class="hljs-line">   getBasePackageBName;
+</div><div class="hljs-line">   getPackageBId;
+</div><div class="hljs-line">}<span class="hljs-keyword">else</span> <span class="hljs-keyword">if</span>(packageId == superPackageBId){
+</div><div class="hljs-line">   getSuperPackageBName;
+</div><div class="hljs-line">   getPackageBId;
+</div><div class="hljs-line">}
+</div></code></pre>
+
+<p>将来服务又要再推出好几十款套餐，还能继续追加if-else吗？不追求代码质量，肯定不介意继续追加if-else。所以我对代码进行了整改，使代码整洁、易维护 。</p>
+
+
+
+<h3 id="策略模式应用">策略模式应用</h3>
+
+<p>将所有的套餐抽象出一个超类:BasePackage,然后每款套餐都继承自BasePackage。 <br>
+BasePackage定义:</p>
+
+
+
+<pre class="prettyprint hljs-dark"><code class="language-java hljs"><div class="hljs-line"><span class="hljs-comment">/**</span>
+</div><div class="hljs-line"><span class="hljs-comment">*套餐超类</span>
+</div><div class="hljs-line"><span class="hljs-comment">*/</span>
+</div><div class="hljs-line"><span class="hljs-keyword">public</span> <span class="hljs-keyword">abstract</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">BasePackage</span> </span>{
+</div><div class="hljs-line">    <span class="hljs-comment">// 维护package的id和名称，key：packageId，value：packageName</span>
+</div><div class="hljs-line">    Map&lt;String,String&gt; packageMap;
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-comment">// 初始化packageMap</span>
+</div><div class="hljs-line">    BasePackage(Map&lt;String,String&gt; packageMap) {
+</div><div class="hljs-line">        <span class="hljs-keyword">this</span>.packageMap = packageMap;
+</div><div class="hljs-line">    }
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-comment">// 根据packageId获取packageName</span>
+</div><div class="hljs-line">    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> String <span class="hljs-title">getPackageName</span><span class="hljs-params">(String packageId)</span> </span>{
+</div><div class="hljs-line">        <span class="hljs-keyword">return</span> packageMap.get(packageId);
+</div><div class="hljs-line">    }
+</div><div class="hljs-line">    <span class="hljs-comment">// 获取二级套餐所属的一级套餐Id</span>
+</div><div class="hljs-line">    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">abstract</span> String <span class="hljs-title">getParentPackageId</span><span class="hljs-params">()</span></span>;
+</div><div class="hljs-line">}
+</div></code></pre>
+
+<p>套餐A定义：</p>
+
+
+
+<pre class="prettyprint hljs-dark"><code class="language-java hljs"><div class="hljs-line"><span class="hljs-comment">/**</span>
+</div><div class="hljs-line"><span class="hljs-comment">*套餐A</span>
+</div><div class="hljs-line"><span class="hljs-comment">*/</span>
+</div><div class="hljs-line"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">PackageA</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">BasePackage</span> </span>{
+</div><div class="hljs-line">    <span class="hljs-comment">// 套餐A基础套餐</span>
+</div><div class="hljs-line">    <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> String BASEPACKAGEA_ID = <span class="hljs-string">"basePackageAId"</span>; 
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-comment">// 套餐A高级套餐</span>
+</div><div class="hljs-line">    <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> String SUPERPACKAGEA_ID = <span class="hljs-string">"superPackageAId"</span>; 
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-comment">// 维护套餐A的二级套餐</span>
+</div><div class="hljs-line">    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> Map&lt;String,String&gt; packageAMap = <span class="hljs-keyword">new</span> HashMap&lt;String,String&gt;();
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-comment">// 初始化packageAMap</span>
+</div><div class="hljs-line">    <span class="hljs-keyword">static</span> {
+</div><div class="hljs-line">        packageAMap.put(BASEPACKAGEA_ID, <span class="hljs-string">"basePackageAName"</span>);
+</div><div class="hljs-line">        packageAMap.put(SUPERPACKAGEA_ID, <span class="hljs-string">"superPackageAName"</span>);
+</div><div class="hljs-line">    }
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-comment">// PackageA构造器：初始化BasePackage 的packageMap</span>
+</div><div class="hljs-line">    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">PackageA</span><span class="hljs-params">()</span> </span>{
+</div><div class="hljs-line">        <span class="hljs-keyword">super</span>(packageAMap);
+</div><div class="hljs-line">    }
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-comment">// 重写getParentPackageId,获取二级套餐所属的一级套餐Id</span>
+</div><div class="hljs-line">    <span class="hljs-meta">@Override</span>
+</div><div class="hljs-line">    <span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">getParentPackageId</span><span class="hljs-params">()</span> </span>{
+</div><div class="hljs-line">        <span class="hljs-keyword">return</span> <span class="hljs-string">"packageAId"</span>;
+</div><div class="hljs-line">    };
+</div><div class="hljs-line">}
+</div></code></pre>
+
+
+
+<h3 id="工厂模式应用">工厂模式应用</h3>
+
+<p>提供一个package工厂，可以根据二级套餐Id获取对应的Package实例。 <br>
+PackageFactory定义：</p>
+
+
+
+<pre class="prettyprint hljs-dark"><code class="language-java hljs"><div class="hljs-line"><span class="hljs-comment">/**</span>
+</div><div class="hljs-line"><span class="hljs-comment">*package工厂  </span>
+</div><div class="hljs-line"><span class="hljs-comment">*/</span>
+</div><div class="hljs-line"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">PackageFactory</span> </span>{
+</div><div class="hljs-line">    <span class="hljs-comment">// 维护各种套餐对应的套餐实例,key:二级套餐Id，value:套餐实例 </span>
+</div><div class="hljs-line">    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> Map&lt;String, BasePackage&gt; packageInstanceMap = <span class="hljs-keyword">new</span> HashMap&lt;String, BasePackage&gt;();
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-comment">// 初始化packageInstanceMap </span>
+</div><div class="hljs-line">    <span class="hljs-keyword">static</span> {
+</div><div class="hljs-line">        packageInstanceMap.put(PackageA.BASEPACKAGEA_ID, <span class="hljs-keyword">new</span> PackageA());
+</div><div class="hljs-line">        packageInstanceMap.put(PackageA.SUPERPACKAGEA_ID, <span class="hljs-keyword">new</span> PackageA()); 
+</div><div class="hljs-line">    }
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-comment">// 根据二级套餐Id获取对应的Package实例</span>
+</div><div class="hljs-line">    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> BasePackage <span class="hljs-title">createPackage</span><span class="hljs-params">(String packageId)</span> </span>{
+</div><div class="hljs-line">        <span class="hljs-keyword">return</span> packageInstanceMap.get(packageId);
+</div><div class="hljs-line">    }
+</div><div class="hljs-line">}
+</div></code></pre>
+
+<p>现在可以将前文中一大坨的 if-else用两行代码替代，彻底消除了if-else：</p>
+
+
+
+<pre class="prettyprint hljs-dark"><code class="language-java hljs"><div class="hljs-line">PackageFactory.createPackage(packageId).getPackageName(packageId);
+</div><div class="hljs-line">PackageFactory.createPackage(packageId).getParentPackageId();
+</div></code></pre>
+
+<p>现在系统代码变得整洁和可维护了，但是，Package、PackageFactory 类定义的优雅吗？答案是否定的，每个二级套餐对应的套餐实例居然是重新new的。往夸张了想：如果系统中有好几万种套餐，每种套餐下又有好几万种二级套餐。那么一个服务系统，单单就一个套餐业务就存在上亿个套餐对象，系统性能肯定是不理想的。为了解决这个问题，将Package定义成单例的。</p>
+
+
+
+<h3 id="单例模式应用">单例模式应用</h3>
+
+<p>进一步优化PackageA和PackageFactory定义。 <br>
+套餐A单例实现：</p>
+
+
+
+<pre class="prettyprint hljs-dark"><code class="language-java hljs"><div class="hljs-line"><span class="hljs-comment">/**</span>
+</div><div class="hljs-line"><span class="hljs-comment">*单例套餐A</span>
+</div><div class="hljs-line"><span class="hljs-comment">*/</span>
+</div><div class="hljs-line"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">PackageA</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">BasePackage</span> </span>{
+</div><div class="hljs-line">    <span class="hljs-comment">// 套餐A基础套餐</span>
+</div><div class="hljs-line">    <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> String BASEPACKAGEA_ID = <span class="hljs-string">"basePackageAId"</span>; 
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-comment">// 套餐A高级套餐</span>
+</div><div class="hljs-line">    <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> String SUPERPACKAGEA_ID = <span class="hljs-string">"superPackageAId"</span>; 
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-comment">// 维护套餐A的二级套餐</span>
+</div><div class="hljs-line">    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> Map&lt;String,String&gt; packageAMap = <span class="hljs-keyword">new</span> HashMap&lt;String,String&gt;();
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-comment">// 初始化packageAMap</span>
+</div><div class="hljs-line">    <span class="hljs-keyword">static</span> {
+</div><div class="hljs-line">        packageAMap.put(BASEPACKAGEA_ID, <span class="hljs-string">"basePackageAName"</span>);
+</div><div class="hljs-line">        packageAMap.put(SUPERPACKAGEA_ID, <span class="hljs-string">"superPackageAName"</span>);
+</div><div class="hljs-line">    }
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-comment">// PackageA私有构造器：初始化BasePackage 的packageMap</span>
+</div><div class="hljs-line">    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-title">PackageA</span><span class="hljs-params">()</span> </span>{
+</div><div class="hljs-line">        <span class="hljs-keyword">super</span>(packageAMap);
+</div><div class="hljs-line">    }
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-comment">// 持有packageA实例的私有静态类</span>
+</div><div class="hljs-line">    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">PackageAHolder</span> </span>{
+</div><div class="hljs-line">        <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> PackageA packageA = <span class="hljs-keyword">new</span> PackageA();
+</div><div class="hljs-line">    }
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-comment">// 获取Package的单例</span>
+</div><div class="hljs-line">    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> PackageA <span class="hljs-title">getInstance</span><span class="hljs-params">()</span> </span>{
+</div><div class="hljs-line">        <span class="hljs-keyword">return</span> PackageAHolder.packageA;
+</div><div class="hljs-line">    }
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-comment">// 重写getParentPackageId,获取二级套餐所属的一级套餐Id</span>
+</div><div class="hljs-line">    <span class="hljs-meta">@Override</span>
+</div><div class="hljs-line">    <span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">getParentPackageId</span><span class="hljs-params">()</span> </span>{
+</div><div class="hljs-line">        <span class="hljs-keyword">return</span> <span class="hljs-string">"packageAId"</span>;
+</div><div class="hljs-line">    };
+</div><div class="hljs-line">}
+</div></code></pre>
+
+<p>PackageFactory持有单例的Package：</p>
+
+
+
+<pre class="prettyprint hljs-dark"><code class="language-java hljs"><div class="hljs-line"><span class="hljs-comment">/**</span>
+</div><div class="hljs-line"><span class="hljs-comment">*持有单例Package的package工厂  </span>
+</div><div class="hljs-line"><span class="hljs-comment">*/</span>
+</div><div class="hljs-line"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">PackageFactory</span> </span>{
+</div><div class="hljs-line">    <span class="hljs-comment">// 维护各种套餐对应的套餐实例,key:二级套餐Id，value:套餐实例 </span>
+</div><div class="hljs-line">    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> Map&lt;String, BasePackage&gt; packageInstanceMap = <span class="hljs-keyword">new</span> HashMap&lt;String, BasePackage&gt;();
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-comment">// 初始化packageInstanceMap </span>
+</div><div class="hljs-line">    <span class="hljs-keyword">static</span> {
+</div><div class="hljs-line">        packageInstanceMap.put(PackageA.BASEPACKAGEA_ID, PackageA.getInstance());
+</div><div class="hljs-line">        packageInstanceMap.put(PackageA.SUPERPACKAGEA_ID, PackageA.getInstance()); 
+</div><div class="hljs-line">    }
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-comment">// 根据二级套餐Id获取对应的Package实例</span>
+</div><div class="hljs-line">    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> BasePackage <span class="hljs-title">createPackage</span><span class="hljs-params">(String packageId)</span> </span>{
+</div><div class="hljs-line">        <span class="hljs-keyword">return</span> packageInstanceMap.get(packageId);
+</div><div class="hljs-line">    }
+</div><div class="hljs-line">}
+</div></code></pre>
+
+<p>这份业务代码暂时是不满足开闭原则的，以后每新增一种套餐不可能都去修改PackageFactory 吧。如果只需新增套餐类，而不用修改PackageFactory ，才是满足开闭原则的。借助java反射优化PackageFactory ,不用在PackageFactory手动获取Package实例。</p>
+
+
+
+<h3 id="java反射应用">java反射应用</h3>
+
+<p>引入reflections maven包，用于反射获取BasePackage所有子类Package的Class。</p>
+
+
+
+<pre class="prettyprint hljs-dark"><code class="language-java hljs"><div class="hljs-line">&lt;!-- https:<span class="hljs-comment">//mvnrepository.com/artifact/org.reflections/reflections --&gt;</span>
+</div><div class="hljs-line">&lt;dependency&gt;
+</div><div class="hljs-line">     &lt;groupId&gt;org.reflections&lt;/groupId&gt;
+</div><div class="hljs-line">     &lt;artifactId&gt;reflections&lt;/artifactId&gt;
+</div><div class="hljs-line">     &lt;version&gt;<span class="hljs-number">0.9</span>.11&lt;/version&gt;
+</div><div class="hljs-line"> &lt;/dependency&gt;
+</div></code></pre>
+
+<p>PackageFactory反射初始化packageInstanceMap ：</p>
+
+
+
+<pre class="prettyprint hljs-dark"><code class="language-java hljs"><div class="hljs-line"><span class="hljs-comment">/**</span>
+</div><div class="hljs-line"><span class="hljs-comment">*持有单例Package的package工厂  </span>
+</div><div class="hljs-line"><span class="hljs-comment">*/</span>
+</div><div class="hljs-line"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">PackageFactory</span> </span>{
+</div><div class="hljs-line">    <span class="hljs-comment">// Package字段修饰符</span>
+</div><div class="hljs-line">    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">static</span> String MODIFIER = <span class="hljs-string">"static final"</span>;
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-comment">// 获取Package单例的方法名</span>
+</div><div class="hljs-line">    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">static</span> String GETINSTANCE = <span class="hljs-string">"getInstance"</span>;
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-comment">// 维护各种套餐对应的套餐实例,key:二级套餐Id，value:套餐实例 </span>
+</div><div class="hljs-line">    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> Map&lt;String, BasePackage&gt; packageInstanceMap = <span class="hljs-keyword">new</span> HashMap&lt;String, BasePackage&gt;();
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-comment">// 反射初始化packageInstanceMap </span>
+</div><div class="hljs-line">    <span class="hljs-keyword">static</span> {
+</div><div class="hljs-line">        <span class="hljs-keyword">final</span> String packageName = PackageFactory.class.getPackage().getName();
+</div><div class="hljs-line">        Reflections reflections = <span class="hljs-keyword">new</span> Reflections(packageName, <span class="hljs-keyword">new</span> SubTypesScanner());
+</div><div class="hljs-line">        Set&lt;Class&lt;? extends BasePackage&gt;&gt; subTypes = reflections.getSubTypesOf(BasePackage.class);
+</div><div class="hljs-line">        subTypes.forEach(subtype -&gt; {
+</div><div class="hljs-line">            <span class="hljs-keyword">try</span> {
+</div><div class="hljs-line">                Method getInstance = subtype.getMethod(GETINSTANCE);
+</div><div class="hljs-line">                BasePackage <span class="hljs-keyword">package</span> = (BasePackage) getInstance.invoke(<span class="hljs-keyword">null</span>);
+</div><div class="hljs-line">                Field[] declaredFields = subtype.getDeclaredFields();
+</div><div class="hljs-line">                <span class="hljs-keyword">for</span> (Field field : declaredFields) {
+</div><div class="hljs-line">                    <span class="hljs-keyword">if</span> (StringUtils.equals(MODIFIER, Modifier.toString(field.getModifiers()))) {
+</div><div class="hljs-line">                        packageInstanceMap.put(field.get(subtype).toString(), <span class="hljs-keyword">package</span>);
+</div><div class="hljs-line">                    }
+</div><div class="hljs-line">                }
+</div><div class="hljs-line">            } <span class="hljs-keyword">catch</span>(Exception e) {
+</div><div class="hljs-line">            }
+</div><div class="hljs-line">        });
+</div><div class="hljs-line">    }
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-comment">// 根据二级套餐Id获取对应的Package实例</span>
+</div><div class="hljs-line">    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> BasePackage <span class="hljs-title">createPackage</span><span class="hljs-params">(String packageId)</span> </span>{
+</div><div class="hljs-line">        <span class="hljs-keyword">return</span> packageInstanceMap.get(packageId);
+</div><div class="hljs-line">    }
+</div><div class="hljs-line">}
+</div></code></pre>
+
+<blockquote>
+  <p>注：JDK8，在static代码块中，并行流并行执行lambada表达式时，会出现死锁问题。</p>
+</blockquote>
+
+<p>自此，套餐业务代码满足开闭原则。下文是代码基于Spring框架的进一步精简，感兴趣的童鞋可以继续阅读。</p>
+
+
+
+<h3 id="注入到spring-ioc容器实现单例">注入到Spring IOC容器实现单例</h3>
+
+<p>基于Spring框架开发系统，Package中编写具体业务代码时，避免不了自动装配注入到Spring IOC容器中的bean，自然的将Package实例也注入到Spring IOC容器中。由于注入到Spring IOC容器的实例<strong>默认是单例</strong>，所以Package单例不需要手动实现。 <br>
+Package实例注入到Spring IOC容器中：</p>
+
+
+
+<pre class="prettyprint hljs-dark"><code class="language-java hljs"><div class="hljs-line"><span class="hljs-comment">/**</span>
+</div><div class="hljs-line"><span class="hljs-comment">*单例注入到Spring IOC容器的套餐A</span>
+</div><div class="hljs-line"><span class="hljs-comment">*/</span>
+</div><div class="hljs-line">Component
+</div><div class="hljs-line"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">PackageA</span> <span class="hljs-keyword">extends</span> <span class="hljs-title">BasePackage</span> </span>{
+</div><div class="hljs-line">    <span class="hljs-comment">// 套餐A基础套餐</span>
+</div><div class="hljs-line">    <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> String BASEPACKAGEA_ID = <span class="hljs-string">"basePackageAId"</span>; 
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-comment">// 套餐A高级套餐</span>
+</div><div class="hljs-line">    <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> String SUPERPACKAGEA_ID = <span class="hljs-string">"superPackageAId"</span>; 
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-comment">// 维护套餐A的二级套餐</span>
+</div><div class="hljs-line">    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> Map&lt;String,String&gt; packageAMap = <span class="hljs-keyword">new</span> HashMap&lt;String,String&gt;();
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-comment">// 初始化packageAMap</span>
+</div><div class="hljs-line">    <span class="hljs-keyword">static</span> {
+</div><div class="hljs-line">        packageAMap.put(BASEPACKAGEA_ID, <span class="hljs-string">"basePackageAName"</span>);
+</div><div class="hljs-line">        packageAMap.put(SUPERPACKAGEA_ID, <span class="hljs-string">"superPackageAName"</span>);
+</div><div class="hljs-line">    }
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-comment">// PackageA私有构造器：初始化BasePackage 的packageMap</span>
+</div><div class="hljs-line">    <span class="hljs-function"><span class="hljs-keyword">private</span> <span class="hljs-title">PackageA</span><span class="hljs-params">()</span> </span>{
+</div><div class="hljs-line">        <span class="hljs-keyword">super</span>(packageAMap);
+</div><div class="hljs-line">    }
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-comment">// 重写getParentPackageId,获取二级套餐所属的一级套餐Id</span>
+</div><div class="hljs-line">    <span class="hljs-meta">@Override</span>
+</div><div class="hljs-line">    <span class="hljs-function"><span class="hljs-keyword">public</span> String <span class="hljs-title">getParentPackageId</span><span class="hljs-params">()</span> </span>{
+</div><div class="hljs-line">        <span class="hljs-keyword">return</span> <span class="hljs-string">"packageAId"</span>;
+</div><div class="hljs-line">    };
+</div><div class="hljs-line">}
+</div></code></pre>
+
+
+
+<h3 id="实现applicationcontextaware接口获取spring-ioc容器中的bean">实现ApplicationContextAware接口获取Spring IOC容器中的bean</h3>
+
+<p>实现ApplicationContextAware接口的setApplicationContext(ApplicationContext applicationContext)方法，通过ApplicationContext 获取注入到Spring IOC容器中的bean，ApplicationContext的getBeansOfType方法可以获取指定类型的bean(包括子类)，故可以将上文引入的reflections maven包给移除。 <br>
+实现ApplicationContextAware的PackageFactory：</p>
+
+
+
+<pre class="prettyprint hljs-dark"><code class="language-java hljs"><div class="hljs-line"><span class="hljs-comment">/**</span>
+</div><div class="hljs-line"><span class="hljs-comment">*持有单例Package的package工厂  </span>
+</div><div class="hljs-line"><span class="hljs-comment">*/</span>
+</div><div class="hljs-line">Component
+</div><div class="hljs-line"><span class="hljs-keyword">public</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">PackageFactory</span> <span class="hljs-keyword">implements</span> <span class="hljs-title">ApplicationContextAware</span> </span>{
+</div><div class="hljs-line">    <span class="hljs-comment">// Package字段修饰符</span>
+</div><div class="hljs-line">    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">static</span> String MODIFIER = <span class="hljs-string">"static final"</span>;
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-comment">// 维护各种套餐对应的套餐实例,key:二级套餐Id，value:套餐实例 </span>
+</div><div class="hljs-line">    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> Map&lt;String, BasePackage&gt; packageInstanceMap = <span class="hljs-keyword">new</span> HashMap&lt;String, BasePackage&gt;();
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-comment">// 反射初始化packageInstanceMap </span>
+</div><div class="hljs-line">    <span class="hljs-meta">@Override</span>
+</div><div class="hljs-line">    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">setApplicationContext</span><span class="hljs-params">(ApplicationContext applicationContext)</span> <span class="hljs-keyword">throws</span> BeansException </span>{
+</div><div class="hljs-line">        applicationContext.getBeansOfType(BasePackage.class).values().forEach(<span class="hljs-keyword">package</span> -&gt; {
+</div><div class="hljs-line">            Class&lt;? extends BasePackage&gt; packageClass = <span class="hljs-keyword">package</span>.getClass();
+</div><div class="hljs-line">            Field[] declaredFields = packageClass.getDeclaredFields();
+</div><div class="hljs-line">            <span class="hljs-keyword">for</span> (Field field : declaredFields) {
+</div><div class="hljs-line">                <span class="hljs-keyword">if</span> (StringUtils.equals(MODIFIER, Modifier.toString(field.getModifiers()))) {
+</div><div class="hljs-line">                    <span class="hljs-keyword">try</span> {
+</div><div class="hljs-line">                        packageInstanceMap.put(field.get(packageClass).toString(), <span class="hljs-keyword">package</span>);
+</div><div class="hljs-line">                    } <span class="hljs-keyword">catch</span> (IllegalAccessException e) {
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">                    }
+</div><div class="hljs-line">                }
+</div><div class="hljs-line">            }
+</div><div class="hljs-line">        });
+</div><div class="hljs-line">    }
+</div><div class="hljs-line"><wbr>
+</div><div class="hljs-line">    <span class="hljs-comment">// 根据二级套餐Id获取对应的Package实例</span>
+</div><div class="hljs-line">    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> BasePackage <span class="hljs-title">createPackage</span><span class="hljs-params">(String packageId)</span> </span>{
+</div><div class="hljs-line">        <span class="hljs-keyword">return</span> packageInstanceMap.get(packageId);
+</div><div class="hljs-line">    }
+</div><div class="hljs-line">}
+</div></code></pre>
+
+<blockquote>
+  <p>Spring初始化Spring IOC容器中的bean时，PackageFactory实现的setApplicationContext方法被执行，故串行初始化packageInstanceMap 。</p>
+</blockquote>
+
+<p>通过引入Spring框架，Package 和PackageFactory 被进一步精简优化。</p></div></body></html>
